@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Literal
 
@@ -11,9 +11,16 @@ class TicketCreate(BaseModel):
     description: str = Field(min_length=10, max_length=2000)
 
 
+TicketStatus = Literal["open", "in_progress", "resolved"]
+
+
 class Ticket(TicketCreate):
     id: int
-    status: Literal["open", "in_progress", "resolved"] = "open"
+    status: TicketStatus = "open"
+
+
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus
 
 
 # Temporary storage: restarting the application clears all tickets.
@@ -35,3 +42,18 @@ def create_ticket(ticket: TicketCreate):
 @app.get("/tickets", response_model=list[Ticket])
 def list_tickets():
     return tickets
+
+
+@app.get("/tickets/{ticket_id}", response_model=Ticket)
+def get_ticket(ticket_id: int):
+    for ticket in tickets:
+        if ticket.id == ticket_id:
+            return ticket
+    raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
+
+
+@app.patch("/tickets/{ticket_id}/status", response_model=Ticket)
+def update_ticket_status(ticket_id: int, update: TicketStatusUpdate):
+    ticket = get_ticket(ticket_id)
+    ticket.status = update.status
+    return ticket

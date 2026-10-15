@@ -11,6 +11,16 @@ Create and list support tickets with input validation. Tickets are temporarily s
 - `GET /`: Welcome message
 - `POST /tickets`: Create a ticket (title: 3–100 characters; description: 10–2000 characters)
 - `GET /tickets`: List tickets
+- `GET /tickets/{ticket_id}`: Get a ticket; returns 404 if it does not exist
+- `PATCH /tickets/{ticket_id}/status`: Update status to `open`, `in_progress`, or `resolved`; returns 404 if the ticket does not exist
+
+Example request body for updating a ticket's status:
+
+```json
+{
+  "status": "in_progress"
+}
+```
 
 Example request body for `POST /tickets`:
 
@@ -40,7 +50,7 @@ Open http://127.0.0.1:8000 for the welcome endpoint and http://127.0.0.1:8000/do
 
 ## Planned features
 
-- Update ticket status and assign tickets
+- Assign tickets
 - Filter tickets by category and status
 - Store tickets in SQLite
 - Train and evaluate a text classification model for category suggestions
