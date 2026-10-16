@@ -4,7 +4,7 @@ A Python API for managing support tickets, with plans for machine learning-based
 
 ## Current status
 
-Create and list support tickets with input validation. Tickets are temporarily stored in memory and are lost when the application restarts. Database storage and machine learning features are not implemented yet.
+Create, list and view support tickets, and update their status with input validation. Tickets are stored in SQLite and persist across application restarts. Machine learning features are not implemented yet.
 
 ## Endpoints
 
@@ -36,6 +36,7 @@ Example request body for `POST /tickets`:
 - Python
 - FastAPI
 - Uvicorn
+- SQLite (via Python's built-in `sqlite3` module)
 
 ## Run locally
 
@@ -48,9 +49,10 @@ python -m uvicorn main:app --reload
 
 Open http://127.0.0.1:8000 for the welcome endpoint and http://127.0.0.1:8000/docs for the interactive API documentation.
 
+The application automatically creates `support.db` in the project folder on startup. No separate database server is required. Local database files are excluded from Git. Tickets previously held in memory are not migrated.
+
 ## Planned features
 
 - Assign tickets
 - Filter tickets by category and status
-- Store tickets in SQLite
 - Train and evaluate a text classification model for category suggestions
