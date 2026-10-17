@@ -10,7 +10,7 @@ Create, list and view support tickets, and update their status with input valida
 
 - `GET /`: Welcome message
 - `POST /tickets`: Create a ticket (title: 3–100 characters; description: 10–2000 characters)
-- `GET /tickets`: List tickets
+- `GET /tickets`: List all tickets, or filter by status (for example, `/tickets?status=open`). Allowed values: `open`, `in_progress`, `resolved`. Invalid values return 422; no matches return an empty list.
 - `GET /tickets/{ticket_id}`: Get a ticket; returns 404 if it does not exist
 - `PATCH /tickets/{ticket_id}/status`: Update status to `open`, `in_progress`, or `resolved`; returns 404 if the ticket does not exist
 
@@ -54,5 +54,5 @@ The application automatically creates `support.db` in the project folder on star
 ## Planned features
 
 - Assign tickets
-- Filter tickets by category and status
+- Filter tickets by category
 - Train and evaluate a text classification model for category suggestions

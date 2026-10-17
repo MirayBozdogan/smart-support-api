@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 from contextlib import asynccontextmanager
 
 from database import get_connection, init_database
@@ -48,9 +48,14 @@ def create_ticket(ticket: TicketCreate):
 
 
 @app.get("/tickets", response_model=list[Ticket])
-def list_tickets():
+def list_tickets(status: Optional[TicketStatus] = None):
     with get_connection() as connection:
-        rows = connection.execute("SELECT * FROM tickets ORDER BY id").fetchall()
+        if status is None:
+            rows = connection.execute("SELECT * FROM tickets ORDER BY id").fetchall()
+        else:
+            rows = connection.execute(
+                "SELECT * FROM tickets WHERE status = ? ORDER BY id", (status,)
+            ).fetchall()
         return [Ticket(**dict(row)) for row in rows]
 
 
