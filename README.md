@@ -4,7 +4,7 @@ A Python API for managing support tickets, with plans for machine learning-based
 
 ## Current status
 
-Create, list and view support tickets, and update their status with input validation. Tickets are stored in SQLite and persist across application restarts. Machine learning features are not implemented yet.
+Create, list, view and permanently delete support tickets, and update their status with input validation. Tickets are stored in SQLite and persist across application restarts. Machine learning features are not implemented yet.
 
 ## Endpoints
 
@@ -12,7 +12,9 @@ Create, list and view support tickets, and update their status with input valida
 - `POST /tickets`: Create a ticket (title: 3–100 characters; description: 10–2000 characters)
 - `GET /tickets`: List all tickets, or filter by status (for example, `/tickets?status=open`). Allowed values: `open`, `in_progress`, `resolved`. Invalid values return 422; no matches return an empty list.
 - `GET /tickets/{ticket_id}`: Get a ticket; returns 404 if it does not exist
+- `PATCH /tickets/{ticket_id}`: Edit title and description (both required, using the same validation as creation). Preserves ID and status; returns 404 if the ticket does not exist.
 - `PATCH /tickets/{ticket_id}/status`: Update status to `open`, `in_progress`, or `resolved`; returns 404 if the ticket does not exist
+- `DELETE /tickets/{ticket_id}`: Permanently delete a ticket; returns 204 with no response body, or 404 if it does not exist
 
 Example request body for updating a ticket's status:
 

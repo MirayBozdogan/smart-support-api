@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 from contextlib import asynccontextmanager
@@ -83,3 +83,29 @@ def update_ticket_status(ticket_id: int, update: TicketStatusUpdate):
             "SELECT * FROM tickets WHERE id = ?", (ticket_id,)
         ).fetchone()
         return Ticket(**dict(row))
+
+
+@app.patch("/tickets/{ticket_id}", response_model=Ticket)
+def edit_ticket(ticket_id: int, update: TicketCreate):
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "UPDATE tickets SET title = ?, description = ? WHERE id = ?",
+            (update.title, update.description, ticket_id),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
+        row = connection.execute(
+            "SELECT * FROM tickets WHERE id = ?", (ticket_id,)
+        ).fetchone()
+        return Ticket(**dict(row))
+
+
+@app.delete("/tickets/{ticket_id}", status_code=204)
+def delete_ticket(ticket_id: int):
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "DELETE FROM tickets WHERE id = ?", (ticket_id,)
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
+    return Response(status_code=204)
