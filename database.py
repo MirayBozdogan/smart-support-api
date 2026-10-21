@@ -30,3 +30,11 @@ def init_database():
             )
             """
         )
+        columns = connection.execute("PRAGMA table_info(tickets)").fetchall()
+        if not any(column["name"] == "category" for column in columns):
+            connection.execute(
+                """
+                ALTER TABLE tickets ADD COLUMN category TEXT NOT NULL DEFAULT 'other'
+                    CHECK (category IN ('payment', 'account', 'technical', 'other'))
+                """
+            )

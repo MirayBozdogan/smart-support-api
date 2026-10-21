@@ -21,15 +21,21 @@ class TicketCreate(BaseModel):
 
 
 TicketStatus = Literal["open", "in_progress", "resolved"]
+TicketCategory = Literal["payment", "account", "technical", "other"]
 
 
 class Ticket(TicketCreate):
     id: int
     status: TicketStatus = "open"
+    category: TicketCategory = "other"
 
 
 class TicketStatusUpdate(BaseModel):
     status: TicketStatus
+
+
+class TicketCategoryUpdate(BaseModel):
+    category: TicketCategory
 
 
 @app.get("/")
@@ -48,14 +54,22 @@ def create_ticket(ticket: TicketCreate):
 
 
 @app.get("/tickets", response_model=list[Ticket])
-def list_tickets(status: Optional[TicketStatus] = None):
+def list_tickets(
+    status: Optional[TicketStatus] = None,
+    category: Optional[TicketCategory] = None,
+):
+    query = "SELECT * FROM tickets WHERE 1 = 1"
+    parameters = []
+    if status is not None:
+        query += " AND status = ?"
+        parameters.append(status)
+    if category is not None:
+        query += " AND category = ?"
+        parameters.append(category)
+    query += " ORDER BY id"
+
     with get_connection() as connection:
-        if status is None:
-            rows = connection.execute("SELECT * FROM tickets ORDER BY id").fetchall()
-        else:
-            rows = connection.execute(
-                "SELECT * FROM tickets WHERE status = ? ORDER BY id", (status,)
-            ).fetchall()
+        rows = connection.execute(query, parameters).fetchall()
         return [Ticket(**dict(row)) for row in rows]
 
 
@@ -76,6 +90,21 @@ def update_ticket_status(ticket_id: int, update: TicketStatusUpdate):
         cursor = connection.execute(
             "UPDATE tickets SET status = ? WHERE id = ?",
             (update.status, ticket_id),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
+        row = connection.execute(
+            "SELECT * FROM tickets WHERE id = ?", (ticket_id,)
+        ).fetchone()
+        return Ticket(**dict(row))
+
+
+@app.patch("/tickets/{ticket_id}/category", response_model=Ticket)
+def update_ticket_category(ticket_id: int, update: TicketCategoryUpdate):
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "UPDATE tickets SET category = ? WHERE id = ?",
+            (update.category, ticket_id),
         )
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
