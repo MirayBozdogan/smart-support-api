@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Optional
 from contextlib import asynccontextmanager
 
@@ -28,6 +28,7 @@ class Ticket(TicketCreate):
     id: int
     status: TicketStatus = "open"
     category: TicketCategory = "other"
+    assignee: Optional[str] = None
 
 
 class TicketStatusUpdate(BaseModel):
@@ -36,6 +37,17 @@ class TicketStatusUpdate(BaseModel):
 
 class TicketCategoryUpdate(BaseModel):
     category: TicketCategory
+
+
+class TicketAssigneeUpdate(BaseModel):
+    assignee: Optional[str] = Field(..., min_length=2, max_length=100)
+
+    @field_validator("assignee", mode="before")
+    @classmethod
+    def strip_assignee(cls, value):
+        if isinstance(value, str):
+            return value.strip()
+        return value
 
 
 @app.get("/")
@@ -105,6 +117,21 @@ def update_ticket_category(ticket_id: int, update: TicketCategoryUpdate):
         cursor = connection.execute(
             "UPDATE tickets SET category = ? WHERE id = ?",
             (update.category, ticket_id),
+        )
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")
+        row = connection.execute(
+            "SELECT * FROM tickets WHERE id = ?", (ticket_id,)
+        ).fetchone()
+        return Ticket(**dict(row))
+
+
+@app.patch("/tickets/{ticket_id}/assignee", response_model=Ticket)
+def update_ticket_assignee(ticket_id: int, update: TicketAssigneeUpdate):
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "UPDATE tickets SET assignee = ? WHERE id = ?",
+            (update.assignee, ticket_id),
         )
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Destek talebi bulunamadı.")

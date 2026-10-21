@@ -31,6 +31,8 @@ def init_database():
             """
         )
         columns = connection.execute("PRAGMA table_info(tickets)").fetchall()
+        if not any(column["name"] == "assignee" for column in columns):
+            connection.execute("ALTER TABLE tickets ADD COLUMN assignee TEXT")
         if not any(column["name"] == "category" for column in columns):
             connection.execute(
                 """

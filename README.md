@@ -12,6 +12,7 @@ Create, list, view and permanently delete support tickets, and update their stat
 - `POST /tickets`: Create a ticket (title: 3–100 characters; description: 10–2000 characters)
 - `GET /tickets`: List all tickets, or filter by status (for example, `/tickets?status=open`). Allowed values: `open`, `in_progress`, `resolved`. Invalid values return 422; no matches return an empty list.
 - `GET /tickets/{ticket_id}`: Get a ticket; returns 404 if it does not exist
+- `PATCH /tickets/{ticket_id}/assignee`: Assign or unassign a ticket. Send `{"assignee": "Miray"}` to assign, or `{"assignee": null}` to unassign. The field is required; names are trimmed and must contain 2–100 characters. Invalid input returns 422; a missing ticket returns 404.
 - `PATCH /tickets/{ticket_id}/category`: Set category to `payment`, `account`, `technical`, or `other`; returns 404 if the ticket does not exist, or 422 for invalid input.
 - `PATCH /tickets/{ticket_id}`: Edit title and description (both required, using the same validation as creation). Preserves ID and status; returns 404 if the ticket does not exist.
 - `PATCH /tickets/{ticket_id}/status`: Update status to `open`, `in_progress`, or `resolved`; returns 404 if the ticket does not exist
@@ -20,6 +21,8 @@ Create, list, view and permanently delete support tickets, and update their stat
 Tickets start in category `other`. To change it, send `{"category": "payment"}` to `PATCH /tickets/{ticket_id}/category`. Filter with `/tickets?category=payment`, or combine filters: `/tickets?status=open&category=payment`. Both filters must match when combined; no matches return an empty list. Invalid categories return 422.
 
 Existing databases are updated automatically on startup: the category column is added if missing, existing tickets receive `other`, and their other fields are preserved. Category selection is currently manual; no model inference is performed.
+
+The nullable `assignee` column is also added automatically if missing. Existing and new tickets start unassigned. Assignees are currently free-text names, not verified user accounts. Assignment does not change ticket status.
 
 Example request body for updating a ticket's status:
 
@@ -60,5 +63,4 @@ The application automatically creates `support.db` in the project folder on star
 
 ## Planned features
 
-- Assign tickets
 - Train and evaluate a text classification model for category suggestions
