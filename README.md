@@ -41,6 +41,15 @@ Example request body for `POST /tickets`:
 }
 ```
 
+## Code structure
+
+- `main.py`: Application startup and router registration
+- `schemas.py`: Pydantic request/response models and allowed status/category values
+- `routers/tickets.py`: Ticket endpoints and their SQL operations
+- `database.py`: SQLite connections and table initialization
+
+SQL currently lives in the router; separate service and repository layers have not been introduced.
+
 ## Technologies
 
 - Python
